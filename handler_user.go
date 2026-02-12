@@ -48,8 +48,8 @@ func handleRegisterUser(s *state, cmd command) error {
 	})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			fmt.Println("user already exists")
 			os.Exit(1)
-			return errors.New("user already exists")
 		}
 		return err
 	}
@@ -62,5 +62,17 @@ func handleRegisterUser(s *state, cmd command) error {
 	fmt.Printf("The user: %v has been created\n", name)
 	fmt.Printf("Here are the user details: %v\n", data)
 
+	return nil
+}
+
+func handleResetDB(s *state, cmd command) error {
+	err := s.db.DeleteAllUsers(context.Background())
+
+	if err != nil {
+		fmt.Println("Could not perform this action")
+		os.Exit(1)
+	}
+	fmt.Println("Action performed successfully!!")
+	os.Exit(0)
 	return nil
 }
