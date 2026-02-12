@@ -44,6 +44,7 @@ func main() {
 	cmds.register("users", handleListAllUsers)
 	cmds.register("agg", handlerAgg)
 	cmds.register("addfeed", handleAddFeed)
+	cmds.register("feeds", handleListFeed)
 
 	if len(os.Args) < 2 {
 		log.Fatal("You need to pass in enough args like login or register")
