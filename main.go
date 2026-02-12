@@ -1,13 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"gator/internal/config"
+	"gator/internal/database"
 	"log"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type state struct {
 	conPointer *config.Config
+	db         *database.Queries
 }
 
 func main() {
@@ -16,8 +21,17 @@ func main() {
 		log.Fatalf("error reading config: %v", err)
 	}
 
+	db, err := sql.Open("postgres", cfg.DBURL)
+
+	if err != nil {
+		log.Fatalf("error opening db: %v", err)
+	}
+
+	dbQueries := database.New(db)
+
 	programState := &state{
 		conPointer: &cfg,
+		db:         dbQueries,
 	}
 
 	cmds := commands{
@@ -25,6 +39,7 @@ func main() {
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handleRegisterUser)
 
 	if len(os.Args) < 2 {
 		log.Fatal("You need to pass in enough args like login or register")
