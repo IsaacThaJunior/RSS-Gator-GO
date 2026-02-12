@@ -76,3 +76,20 @@ func handleResetDB(s *state, cmd command) error {
 	os.Exit(0)
 	return nil
 }
+
+func handleListAllUsers(s *state, cmd command) error {
+	users, err := s.db.ListUsers(context.Background())
+	if err != nil {
+		return err
+	}
+	for _, user := range users {
+		currentLoggedInUser := s.conPointer.CurrentUserName
+		if user.Name == currentLoggedInUser {
+			// print the current user in this way: * user (current)
+			fmt.Printf("* %v (current)\n", user.Name)
+		} else {
+			fmt.Printf("* %v\n", user.Name)
+		}
+	}
+	return nil
+}
