@@ -10,6 +10,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type Feed struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	UserID    uuid.UUID
+	Url       string
+	Name      string
+}
+
 type User struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
