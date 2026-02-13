@@ -20,7 +20,7 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handleAddFeed(s *state, cmd command) error {
+func handleAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		fmt.Println("You need a name and URL to continue")
 		os.Exit(1)
@@ -28,13 +28,6 @@ func handleAddFeed(s *state, cmd command) error {
 
 	name := cmd.Args[0]
 	url := cmd.Args[1]
-
-	// Get Logged in User
-	user, err := s.db.GetUser(context.Background(), s.conPointer.CurrentUserName)
-	if err != nil {
-		fmt.Println("Not Logged in")
-		os.Exit(1)
-	}
 
 	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		Url:    url,
@@ -86,7 +79,7 @@ func handleListFeed(s *state, cmd command) error {
 	return nil
 }
 
-func handleAddFeedFollow(s *state, cmd command) error {
+func handleAddFeedFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		fmt.Println("You need a URL to continue")
 		os.Exit(1)
@@ -98,13 +91,6 @@ func handleAddFeedFollow(s *state, cmd command) error {
 
 	if err != nil {
 		fmt.Printf("Err: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Get Logged in User
-	user, err := s.db.GetUser(context.Background(), s.conPointer.CurrentUserName)
-	if err != nil {
-		fmt.Println("Not Logged in")
 		os.Exit(1)
 	}
 
@@ -124,13 +110,8 @@ func handleAddFeedFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handleGetUserFollow(s *state, cmd command) error {
-	user, err := s.db.GetUser(context.Background(), s.conPointer.CurrentUserName)
+func handleGetUserFollow(s *state, cmd command, user database.User) error {
 
-	if err != nil {
-		fmt.Println("Not Logged in")
-		os.Exit(1)
-	}
 	data, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 
 	if err != nil {
