@@ -2,9 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"gator/internal/database"
 	"log"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func handlerAgg(s *state, cmd command) error {
@@ -18,11 +23,11 @@ func handlerAgg(s *state, cmd command) error {
 		return err
 	}
 
-	log.Printf("Collecting data every %v", timeBetweenRequests)
-
 	ticker := time.NewTicker(timeBetweenRequests)
 
 	for ; ; <-ticker.C {
+		log.Printf("Collecting data every %v", timeBetweenRequests)
+
 		scrapeFeed(s)
 	}
 
@@ -46,8 +51,42 @@ func scrapeFeed(s *state) error {
 	}
 
 	for _, item := range data.Channel.Item {
-		fmt.Printf("found post: %v\n", item.Title)
+		t, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID: uuid.New(),
+			Title: sql.NullString{
+				String: item.Title,
+				Valid:  item.Title != "",
+			},
+			Url: item.Link,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  item.Description != "",
+			},
+			PublishedAt: sql.NullTime{
+				Time:  t,
+				Valid: t.Unix() != 0,
+			},
+			FeedID:    feed.ID,
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+		})
+
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			}
+			log.Printf("Couldn't create post: %v", err)
+			continue
+		}
+
 	}
+
+	log.Printf("Feed %s collected, %v posts found", feed.Name, len(data.Channel.Item))
 
 	return nil
 }
