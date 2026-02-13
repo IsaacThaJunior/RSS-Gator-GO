@@ -36,7 +36,7 @@ func handleAddFeed(s *state, cmd command) error {
 		os.Exit(1)
 	}
 
-	_, err = s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		Url:    url,
 		UserID: user.ID,
 		ID:     uuid.New(),
@@ -45,6 +45,17 @@ func handleAddFeed(s *state, cmd command) error {
 
 	if err != nil {
 		fmt.Printf("Error saving feed to the db: %v", err)
+		os.Exit(1)
+	}
+
+	_, err = s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:     uuid.New(),
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+
+	if err != nil {
+		fmt.Printf("Error saving feed follow to the db: %v", err)
 		os.Exit(1)
 	}
 
@@ -70,6 +81,67 @@ func handleListFeed(s *state, cmd command) error {
 		}
 
 		fmt.Printf("Feed Owner: %v\n", user.Name)
+
+	}
+	return nil
+}
+
+func handleAddFeedFollow(s *state, cmd command) error {
+	if len(cmd.Args) != 1 {
+		fmt.Println("You need a URL to continue")
+		os.Exit(1)
+	}
+
+	url := cmd.Args[0]
+	// Get url from db
+	feed, err := s.db.GetFeedByUrl(context.Background(), url)
+
+	if err != nil {
+		fmt.Printf("Err: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Get Logged in User
+	user, err := s.db.GetUser(context.Background(), s.conPointer.CurrentUserName)
+	if err != nil {
+		fmt.Println("Not Logged in")
+		os.Exit(1)
+	}
+
+	data, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:     uuid.New(),
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+
+	if err != nil {
+		fmt.Printf("Error saving feed to the db: %v", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Here is the Feed Name: %v\n", data.FeedUrl)
+	fmt.Printf("Here is the Current user: %v\n", data.UserName)
+	return nil
+}
+
+func handleGetUserFollow(s *state, cmd command) error {
+	user, err := s.db.GetUser(context.Background(), s.conPointer.CurrentUserName)
+
+	if err != nil {
+		fmt.Println("Not Logged in")
+		os.Exit(1)
+	}
+	data, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+
+	if err != nil {
+		fmt.Printf("Err: %v\n", err)
+		os.Exit(1)
+	}
+
+	for _, feed := range data {
+		fmt.Printf("Feed Name: %v\n", feed.FeedUrl)
+		fmt.Printf("Feed Owner: %v\n", feed.UserName)
+		fmt.Printf("Feed Owner: %v\n", feed.FeedName)
 
 	}
 	return nil

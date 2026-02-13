@@ -69,9 +69,22 @@ func handleResetDB(s *state, cmd command) error {
 	err := s.db.DeleteAllUsers(context.Background())
 
 	if err != nil {
-		fmt.Println("Could not perform this action")
+		fmt.Println("Could not delete users")
 		os.Exit(1)
 	}
+	err = s.db.DeleteAllFeeds(context.Background())
+
+	if err != nil {
+		fmt.Println("Could not delete feeds")
+		os.Exit(1)
+	}
+
+	// err = s.db.DeleteAllFeddFollows(context.Background())
+
+	// if err != nil {
+	// 	fmt.Println("Could not perform this action")
+	// 	os.Exit(1)
+	// }
 	fmt.Println("Action performed successfully!!")
 	os.Exit(0)
 	return nil

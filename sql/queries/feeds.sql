@@ -19,6 +19,9 @@ RETURNING *;
 -- name: GetFeed :one
 SELECT * FROM feeds WHERE id = $1;
 
+-- name: GetFeedByUrl :one
+SELECT * FROM feeds WHERE url = $1;
+
 -- name: GetAllFeeds :many
 SELECT * FROM feeds ORDER BY created_at DESC;
 
@@ -27,3 +30,6 @@ SELECT * FROM feeds WHERE user_id = $1 ORDER BY created_at DESC;
 
 -- name: DeleteFeed :exec
 DELETE FROM feeds WHERE id = $1;
+
+-- name: DeleteAllFeeds :exec
+DELETE FROM feeds;
