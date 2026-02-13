@@ -94,3 +94,30 @@ func handleListAllUsers(s *state, cmd command) error {
 	}
 	return nil
 }
+
+func handleUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.Args) != 1 {
+		fmt.Println("You need a url to perform this action")
+		os.Exit(1)
+	}
+
+	url := cmd.Args[0]
+
+	feed, err := s.db.GetFeedByUrl(context.Background(), url)
+
+	if err != nil {
+		fmt.Printf("Err: %v\n", err)
+		os.Exit(1)
+	}
+
+	err = s.db.DeleteFeedFollowByUserIdAndFeedId(context.Background(), database.DeleteFeedFollowByUserIdAndFeedIdParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+
+	if err != nil {
+		fmt.Printf("Error deleting feed follow to the db: %v", err)
+		os.Exit(1)
+	}
+	return nil
+}

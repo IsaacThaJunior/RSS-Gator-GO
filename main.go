@@ -47,6 +47,7 @@ func main() {
 	cmds.register("feeds", handleListFeed)
 	cmds.register("follow", middlewareLoggedIn(handleAddFeedFollow))
 	cmds.register("following", middlewareLoggedIn(handleGetUserFollow))
+	cmds.register("unfollow", middlewareLoggedIn(handleUnfollow))
 
 	if len(os.Args) < 2 {
 		log.Fatal("You need to pass in enough args like login or register")
